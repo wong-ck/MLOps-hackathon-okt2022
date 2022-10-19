@@ -20,7 +20,7 @@ st.markdown("This is a demo Streamlit app.")
 
 @st.cache(persist=True)
 def load_data():
-    df = pd.read_csv("https://datahub.io/machine-learning/iris/r/iris.csv")
+    df = pd.read_csv("tweets_dev.csv")
     return(df)
 
 
@@ -53,8 +53,7 @@ def run():
     
     
     #Scatter Plot
-    fig = px.scatter(df, x=df["sepallength"], y=df["sepalwidth"], color="class",
-                 size='petallength', hover_data=['petalwidth'])
+    fig = sns.lineplot(x='datetime',y='half_hour_count',hue='candidate',data=df)
     
     fig.update_layout({
                 'plot_bgcolor': 'rgba(0, 0, 0, 0)'})
