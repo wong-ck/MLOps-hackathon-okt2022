@@ -1,5 +1,6 @@
 import pandas as pd
 import statistics
+from logic import get_reddits, reddits_to_df, get_tweets, tweets_to_df
 
 from google.cloud import language_v1
 
@@ -8,8 +9,9 @@ GCP_BUCKET_SENTIMENT_CACHE_URI = "gs://dkpop_sentiment_cache/tweets/"
 
 
 def download_tweets(candidate, datetime_start, duration_min):
-    return
-
+    tweets = get_tweets(candidate, datetime_start, duration_min)
+    tweets_df = tweets_to_df(tweets)
+    return tweets_df
 
 def upload_sentences_gcs(sentences, gcs_content_uri):
     return
@@ -91,7 +93,6 @@ def main():
     candidates = ["MF", "JEJ", "MM"]
     datetime_start = pd.Timestamp.now()
     duration_min = 30
-
     for candidate in candidates:
         sentences = download_tweets(candidate, datetime_start, duration_min)
 
