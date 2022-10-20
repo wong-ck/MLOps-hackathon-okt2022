@@ -96,7 +96,7 @@ def analyze_sentences_sentiment(gcs_content_uri):
 
     # Available types: PLAIN_TEXT, HTML
     type_ = language_v1.Document.Type.PLAIN_TEXT
-    type_ = translate(type_)
+    type_ = translate_text(type_)
 
     # Optional. If not specified, the language is automatically detected.
     # For list of supported languages:
