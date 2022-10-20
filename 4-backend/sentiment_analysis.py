@@ -65,7 +65,7 @@ def translate_text(text, target='en'):
     Target must be an ISO 639-1 language code.
     See https://g.co/cloud/translate/v2/translate-reference#supported_languages
     """
-
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "translate_credential.json"
     translate_client = translate.Client()
 
     if isinstance(text, six.binary_type):
