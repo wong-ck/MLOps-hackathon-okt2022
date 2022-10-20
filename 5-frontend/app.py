@@ -8,8 +8,13 @@ Created on Sat Feb 27 16:33:16 2021
 
 import streamlit as st
 import pandas as pd
-
+import utils
 import plotly.express as px
+
+
+SAF = 'dkpop_saf.json'
+PID = 'dk-pop' 
+TB = 'dk-pop.social_media_counts.tweets'
 
 
 NAME_DIC = {
@@ -19,7 +24,7 @@ NAME_DIC = {
 }
 
 
-st.title("Danish Election Trending")
+st.title("DK-POP Danish Election Trending")
 st.markdown("""
     General elections are scheduled to be held in Denmark on 1 November 2022
     after the incumbent Prime Minister Mette Frederiksen announced this on 5 
@@ -27,14 +32,18 @@ st.markdown("""
     of the Folketing will be elected; 175 members in Denmark proper, two in 
     the Faroe Islands and two in Greenland [(Wikipedia)](https://en.wikipedia.org/wiki/2022_Danish_general_election).
 
-    We are tracking the number and positivity of the post from various 
+    We are tracking the number and positivity of posts from various 
     social media, and we hope this will provide some insight on how the 
-    people view about the leaders and parties in Denmark. 
+    people view the leaders of the parties in Denmark. 
 """)
 
 @st.cache(persist=True)
 def load_data():
-    df = pd.read_csv("tweets_dev.csv")
+    query = f"""
+        SELECT * FROM {TB}
+    """
+    df = utils.load_data(service_account_file=SAF, project_id=PID, query=query)
+    df = utils.process_data(df)
     return(df)
 
 
