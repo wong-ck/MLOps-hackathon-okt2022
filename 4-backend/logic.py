@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cache
 from typing import Iterable
 import pandas as pd
 import tweepy
@@ -6,53 +6,65 @@ import praw
 from tweepy.models import Status as Tweet
 from praw.models.reddit.submission import Submission as RedditPost
 import yaml
-from datetime import timedelta
 
 config = yaml.safe_load(open("secrets.yaml"))
 
 
-@lru_cache(maxsize=128)
+@cache
 def get_twitter_client():
-    #twitter_auth = tweepy.OAuth1UserHandler(
-    #    config["twitter"]["API_key"],
-    #    config["twitter"]["API_secret"],
-    #    config["twitter"]["access_token"],
-    #    config["twitter"]["access_secret"],
-    #)
-    #cli = tweepy.API(twitter_auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-    cli = tweepy.Client(bearer_token=config["twitter"]["token"],
-                        consumer_key=config["twitter"]["API_key"],
-                        consumer_secret=config["twitter"]["API_secret"],
-                        access_token=config["twitter"]["access_token"],
-                        access_token_secret=config["twitter"]["access_secret"],
-                        wait_on_rate_limit=True)
+    twitter_auth = tweepy.OAuth1UserHandler(
+        config["twitter"]["API_key"],
+        config["twitter"]["API_secret"],
+        config["twitter"]["access_token"],
+        config["twitter"]["access_secret"],
+    )
+    cli = tweepy.API(twitter_auth)
     return cli
 
 
-def get_tweets(user, start_time, duration_min):
+def get_tweets(user, limit):
+    cli = get_twitter_client()
+    tweets = tweepy.Cursor(
+        cli.user_timeline, screen_name=user, tweet_mode="extended"
+    ).items(limit)
+    return list(tweets)
+
+
+def search_tweets(q, limit, retweet=False):
     cli = get_twitter_client()
 
-    retweet_filter='-filter:retweets'
-    q = user + retweet_filter
-    tweets = cli.search_all_tweets(q, end_time=start_time, start_time=start_time-timedelta(minutes=duration_min))
+    if retweet is False:
+        q += "-filter:retweets"
+
+    tweets = cli.search_tweets(q, count=limit, result_type="recent")
     return list(tweets)
 
 
 def tweets_to_df(tweets: Iterable[Tweet]):
+    def _extract_text(tweet):
+        text = ""
+
+        try:
+            text = tweet.full_text
+        except:
+            text = tweet.text
+
+        return text
+
     return pd.DataFrame(
         {
             # "obj": tweet,
             "id": tweet.id_str,
             "created_at": tweet.created_at,
             "source": f"tweeter/{tweet.author.screen_name}",
-            "text": tweet.full_text,
+            "text": _extract_text(tweet),
             "url": (tweet.entities["urls"] or [{}])[0].get("display_url"),
         }
         for tweet in tweets
     )
 
 
-@lru_cache(maxsize=128)
+@cache
 def get_reddit_client():
     return praw.Reddit(
         client_id=config["reddit"]["client_id"],

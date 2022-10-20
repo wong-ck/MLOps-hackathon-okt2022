@@ -1,3 +1,13 @@
+pyyaml
+pandas
+praw
+tweepy==4.10.1
+click
+pydantic
+fastapi
+uvicorn
 pandas-gbq
-'google-cloud-bigquery[bqstorage,pandas]'
+functions-framework==3.*
 pyarrow
+google-cloud-language
+google-cloud-storage
