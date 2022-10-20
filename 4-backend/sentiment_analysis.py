@@ -8,6 +8,9 @@ from google.oauth2 import service_account
 from google.cloud import language_v1
 from google.cloud import storage
 
+import six
+from google.cloud import translate_v2 as translate
+
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 GCP_BQ_URI = "social_media_counts.tweets"
@@ -56,6 +59,28 @@ def upload_sentences_gcs(sentences, bucket_name, blob_name):
     return
 
 
+def translate_text(text, target='en'):
+    """Translates text into the target language.
+
+    Target must be an ISO 639-1 language code.
+    See https://g.co/cloud/translate/v2/translate-reference#supported_languages
+    """
+
+    translate_client = translate.Client()
+
+    if isinstance(text, six.binary_type):
+        text = text.decode("utf-8")
+
+    # Text can also be a sequence of strings, in which case this method
+    # will return a sequence of results for each text.
+    result = translate_client.translate(text, target_language=target)
+
+    #print(u"Text: {}".format(result["input"]))
+    #print(u"Translation: {}".format(result["translatedText"]))
+    #print(u"Detected source language: {}".format(result["detectedSourceLanguage"]))
+    return result["translatedText"]
+
+
 def analyze_sentences_sentiment(gcs_content_uri):
     """
     Analyzing Sentiment in text file stored in Cloud Storage
@@ -71,11 +96,12 @@ def analyze_sentences_sentiment(gcs_content_uri):
 
     # Available types: PLAIN_TEXT, HTML
     type_ = language_v1.Document.Type.PLAIN_TEXT
+    type_ = translate(type_)
 
     # Optional. If not specified, the language is automatically detected.
     # For list of supported languages:
     # https://cloud.google.com/natural-language/docs/languages
-    language = "de"
+    language = "en"
     document = {"gcs_content_uri": gcs_content_uri,
                 "type_": type_, "language": language,
                 }
